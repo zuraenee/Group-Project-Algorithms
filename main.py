@@ -4,7 +4,7 @@ scores = {}
 dictionary = []
 tiles = []
 
-
+#task1
 with open("scores.txt") as f:
     for line in f.readlines():
         scores[line[0]] = int(line[2])
@@ -17,7 +17,7 @@ with open("dictionary.txt") as f:
     for line in f.readlines():
         dictionary.append(line.strip())
 
-
+#task2
 def onlyEnglishLetters(word):
     english_alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
                         "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
@@ -30,7 +30,7 @@ def onlyEnglishLetters(word):
             break
     return english_check
 
-
+#task3
 def getLetterScore(letter):
     if onlyEnglishLetters(letter):
         score = scores[letter.upper()]
@@ -38,7 +38,7 @@ def getLetterScore(letter):
     else:
         return 0
 
-
+#task4
 def getWordScore(word):
     total_score = 0
     if word.upper().strip() in dictionary:
@@ -49,7 +49,7 @@ def getWordScore(word):
     else:
         return 0
 
-
+#task5
 def canBeMade(word, myTiles):
     tile_bank = {}
     word_bank = {}
@@ -79,7 +79,7 @@ def canBeMade(word, myTiles):
     else:
         return False
 
-
+#task6
 def isValid(word_checked, myTiles):
     if onlyEnglishLetters(word_checked):
         if getWordScore(word_checked) > 0:
@@ -90,7 +90,7 @@ def isValid(word_checked, myTiles):
     else:
         return False
 
-
+#task7
 def bestWord(myTiles,given):
     choice = input(
         "Would you like to see the best word and score for these tiles? (yes/no): ")
@@ -118,7 +118,7 @@ def bestWord(myTiles,given):
         pass
 
 
-
+#part2
 def gameStart():
     print("Generating Random Tiles...")
     tilespicked = []
