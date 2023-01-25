@@ -1,36 +1,51 @@
 import random
+import sys
+import string
 
 scores = {}
 dictionary = []
 tiles = []
 
-#task1
-with open("scores.txt") as f:
-    for line in f.readlines():
-        scores[line[0]] = int(line[2])
+try:
+    with open("tiles.txt") as f:
+        for line in f.readlines():
+            tiles.append(line.strip())
+except FileNotFoundError:
+    print("The tiles cannot be found.")
+except:
+    print(f"Error processing the tiles...")
 
-with open("tiles.txt") as f:
-    for line in f.readlines():
-        tiles.append(line.strip())
+try:
+    with open("scores.txt") as f:
+        for line in f.readlines():
+            line = line.strip().replace(" ", "")
+            scores[line[0]] = int(line[1:])
+except FileNotFoundError:
+    print("The scores file cannot be found.")
+except:
+    print(f"Error processing scores file...")
 
-with open("dictionary.txt") as f:
-    for line in f.readlines():
-        dictionary.append(line.strip())
+try:
+    with open("dictionary.txt") as f:
+        for line in f.readlines():
+            dictionary.append(line.strip())
+except FileNotFoundError:
+    print("The dictionary cannot be found.")
+    raise SystemExit(0)
+except:
+    print(f"Error processing dictionary...")
+    raise SystemExit(0)
 
-#task2
+
 def onlyEnglishLetters(word):
-    english_alphabet = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
-                        "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
-    english_check = False
-    for char in word:
-        if char.lower() in english_alphabet:
-            english_check = True
-        elif char.lower() not in english_alphabet:
-            english_check = False
-            break
-    return english_check
+    alpha = string.ascii_uppercase
+    for char in (word.upper()):
+        if char not in alpha:
+            return False
+    else:
+        return True
 
-#task3
+
 def getLetterScore(letter):
     if onlyEnglishLetters(letter):
         score = scores[letter.upper()]
@@ -38,10 +53,10 @@ def getLetterScore(letter):
     else:
         return 0
 
-#task4
+
 def getWordScore(word):
     total_score = 0
-    if word.upper().strip() in dictionary:
+    if word.upper() in dictionary:
         for char in word:
             score = getLetterScore(char)
             total_score += score
@@ -49,11 +64,11 @@ def getWordScore(word):
     else:
         return 0
 
-#task5
+
 def canBeMade(word, myTiles):
     tile_bank = {}
     word_bank = {}
-    bemade_check = False
+    be_made_check = False
     if onlyEnglishLetters(word):
         for each in myTiles:
             if each in tile_bank:
@@ -68,83 +83,109 @@ def canBeMade(word, myTiles):
         for i in word_bank.keys():
             if i in tile_bank:
                 if word_bank[i] == tile_bank[i] or word_bank[i] < tile_bank[i]:
-                    bemade_check = True
+                    be_made_check = True
                 else:
-                    bemade_check = False
+                    be_made_check = False
                     break
             else:
-                bemade_check = False
+                be_made_check = False
                 break
-        return bemade_check
+        return be_made_check
     else:
         return False
 
-#task6
-def isValid(word_checked, myTiles):
-    if onlyEnglishLetters(word_checked):
-        if getWordScore(word_checked) > 0:
-            return canBeMade(word_checked, myTiles)
+
+def isValid(word, myTiles, dictionary):
+    if onlyEnglishLetters(word):
+        if word.upper() in dictionary:
+            return canBeMade(word, myTiles)
         else:
-            print("Word not in dictionary.")
             return False
     else:
         return False
 
-#task7
-def bestWord(myTiles,given):
-    choice = input(
-        "Would you like to see the best word and score for these tiles? (yes/no): ")
-    if choice.lower().strip() == "yes":
-        print("loading...")
-        topscore = 0
-        word = []
-        for words in dictionary:
-            if isValid(words, myTiles):
-                currentscore = getWordScore(words)
-                if currentscore > topscore:
-                    topscore = currentscore
-        if topscore == 0:
-            print("Wow. There is no word.... MY BAD!")
-        else:
-            for words in dictionary:
-                if isValid(words, myTiles):
-                    currentscore = getWordScore(words)
-                    if currentscore == topscore:
-                        word.append(words)
-            print(f"The best score is {topscore} from the words {word}")
-            if given.upper() in word:
-                print("You got the highest score!")
+
+def bestWord(myTiles, given, dictionary):
+    print("loading...")
+    sys.stdout.write("\033[F")
+    top_score = 0
+    word = {}
+    keys = []
+    for words in dictionary:
+        if isValid(words, myTiles, dictionary):
+            current_score = getWordScore(words)
+            if current_score >= top_score:
+                top_score = current_score
+                word[words] = current_score
+    for each in word.keys():
+        if word[each] == top_score:
+            keys.append(each)
+    if top_score == 0:
+        print("Wow. There is no word.... MY BAD!")
     else:
+        print(f"The best score is {top_score} from the word/words {keys}")
+        if given.upper() in word:
+            print("You got the highest score!")
+
+
+def gameStart():
+    print("Generating Random Tiles...")
+    tiles_picked = []
+    for i in range(7):
+        tile_random_pick = random.choice(tiles)
+        tiles_picked.append(tile_random_pick)
+    print("Tiles: " + " ".join(tiles_picked))
+    score_print = []
+    for x in tiles_picked:
+        score_print.append(str(getLetterScore(x)))
+    print("Scores: " + " ".join(score_print))
+    word = input("Enter your word: ")
+    while onlyEnglishLetters(word) == False or word.upper() not in dictionary or canBeMade(word, tiles_picked) == False:
+        if word == "&&&":
+            print("Thanks for using this application, better luck next time!!!")
+            raise SystemExit(0)
+        else:
+            if onlyEnglishLetters(word) == False:
+                print("Only use English letters...")
+            if word.upper() not in dictionary:
+                print("Word not in dictionary")
+            if canBeMade(word, tiles_picked) == False:
+                print("Word cannot be made from tiles.")
+            word = input("Enter your word: ")
+    else:
+        if isValid(word, tiles_picked, dictionary):
+            print("You got it right, this is a valid word.")
+            print(f"Score of this word is: {getWordScore(word)}")
+        else:
+            print(f"This is wrong, Score of this word is: 0")
+    choice = input("Do you want to see the highest scoring words? (Yes/No): ")
+    choice = choice.lower()
+    valid_choices = ["yes", "no"]
+    while choice not in valid_choices:
+        print("Please enter a valid input....")
+        choice = input(
+            "Do you want to see the highest scoring words? (Yes/No): ")
+    if choice == valid_choices[0]:
+        bestWord(tiles_picked, word, dictionary)
+    elif choice == valid_choices[0]:
         pass
 
 
-#part2
-def gameStart():
-    print("Generating Random Tiles...")
-    tilespicked = []
-    for i in range(7):
-        tilerando = random.choice(tiles)
-        tilespicked.append(tilerando)
-    print("Tiles: " + " ".join(tilespicked))
-    scoreprint = []
-    for x in tilespicked:
-        scoreprint.append(str(getLetterScore(x)))
-    print("Scores: " + " ".join(scoreprint))
-    wordx = input("Enter your word: ")
-    while onlyEnglishLetters(wordx) == False:
-        if wordx == "&&&":
-            print("Thanks for using this application, better luck next time!!!")
-            break
-        else:
-            print("Only use English letters...")
-            wordx = input("Enter your word: ")
-    else:
-        if isValid(wordx, tilespicked):
-            print("You got it right, this is a valid word.")
-            print(f"Score of this word is: {getWordScore(wordx)}")
-            bestWord(tilespicked,wordx)
-        else:
-            print(f"This is wrong, Score of this word is: 0")
-            bestWord(tilespicked,wordx)
+def gameLoop():
+    gameStart()
+    choice = input("Do you want to play again? (Yes/No): ")
+    valid_choices = ["yes", "no"]
+    while choice not in valid_choices:
+        print("Please enter a valid input....")
+        choice = input("Do you want to play again? (Yes/No): ")
+    if choice == valid_choices[0]:
+        print("\n")
+        gameStart()
+    elif choice == valid_choices[0]:
+        print("Goodbye!")
+        raise SystemExit(0)
 
-gameStart()
+
+print("Hello welcome to our Scrabble Game.")
+print("\n")
+gameLoop()
